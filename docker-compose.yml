@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  php-cli:
+    build: .
+    volumes:
+      - ./:/code
+    command:
+      - /code/phpunit.sh
+    depends_on: 
+      - mysql
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USERNAME: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      DB_NAME: ${MYSQL_DATABASE}
+      MYSQL_PORT: 3306
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "33061:3306"
+    command: --init-file /code/init.sql
+    volumes:
+      - "./database/mysql:/var/lib/mysql"
+      - "./init.sql:/code/init.sql"
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
