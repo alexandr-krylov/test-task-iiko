@@ -12,14 +12,15 @@ class InvoiceLines implements InterfaceLines
 
     public function add(InvoiceLine $line)
     {
-        $lines->attach($line);
+        $this->lines->attach($line);
+        return $this;
     }
 
     public function remove($id)
     {
-        foreach ($lines as $line) {
-            if ($id == $line->getId) {
-                $lines->detach($line);
+        foreach ($this->lines as $line) {
+            if ($id == $line->getId()) {
+                $this->lines->detach($line);
                 break;
             }
         }
@@ -28,9 +29,10 @@ class InvoiceLines implements InterfaceLines
     public function getSum()
     {
         $sum = 0;
-        foreach($lines as $line) {
-            $sum += $line->getAmount();
+        foreach($this->lines as $line) {
+            $sum += $line->getAmount() * $line->getQuantity();
         }
+        return $sum;
     }
 
     public function getAll()
@@ -40,7 +42,7 @@ class InvoiceLines implements InterfaceLines
 
     public function getById($id)
     {
-        foreach($lines as $line) {
+        foreach($this->lines as $line) {
             if ($id == $line->getId()){
                 return $line;
             }

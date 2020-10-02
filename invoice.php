@@ -65,7 +65,12 @@ class Invoice
 
     public function getTotal()
     {
-        return ($this->invoiceLines->sum()) * (1 - $this->discount / 100);
+        return ($this->invoiceLines->getSum()) * (1 - $this->discount / 100);
+    }
+
+    public function getInvoiceLines()
+    {
+        return $this->invoiceLines;
     }
 
 }
