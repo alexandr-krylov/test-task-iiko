@@ -14,7 +14,7 @@ class InvoiceLine
 
     public function setId($id)
     {
-        $this->id = $id;
+        $this->id = (int)$id;
         return $this;
     }
 
@@ -25,7 +25,7 @@ class InvoiceLine
 
     public function setAmount($amount)
     {
-        $this->amount = $amount;
+        $this->amount = (float)$amount;
         return $this;
     }
 
@@ -36,7 +36,7 @@ class InvoiceLine
 
     public function setQuantity($quantity)
     {
-        $this->quantity = $quantity;
+        $this->quantity = (int)$quantity;
         return $this;
     }
 

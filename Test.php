@@ -138,4 +138,97 @@ class Test extends TestCase
         $this->assertEquals($expectedTotal, $invoice->getTotal());
     }
 
+    public function invoiceRepositoryProvider()
+    {
+        spl_autoload_register();
+        return [
+            [(new Invoice((new InvoiceLines())
+            ->add((new InvoiceLine())->setId(1)->setAmount(1000)->setQuantity(3)->setName('Line 1'))
+            ->add((new InvoiceLine())->setId(2)->setAmount(550)->setQuantity(2)->setName('Line 2'))
+            ))->setDiscount(5)
+            ->setNumber('202010051')
+            ->setStatus('new')
+            ->setDate(new DateTime('202010050000')),
+            [1, 2]
+            ],
+            [(new Invoice((new InvoiceLines())
+            ->add((new InvoiceLine())->setId(3)->setAmount(1000)->setQuantity(3)->setName('Line 3'))
+            ->add((new InvoiceLine())->setId(4)->setAmount(550)->setQuantity(2)->setName('Line 4'))
+            ))->setDiscount(15)
+            ->setNumber('202010052')
+            ->setStatus('new')
+            ->setDate(new DateTime('202010050001')),
+            [3, 4]
+            ]
+        ];
+    }
+    /**
+     * @dataProvider invoiceRepositoryProvider
+     */
+    public function testInvoiceRepository(Invoice $invoice, $lineIds)
+    {
+        $repositiry = new InvoiceRepository();
+        $repositiry->save($invoice);
+        $savedInvoice = $repositiry->findByNumber($invoice->getNumber());
+        $this->assertSame($invoice->getNumber(), $savedInvoice->getNumber());
+        $this->assertSame($invoice->getStatus(), $savedInvoice->getStatus());
+        $this->assertSame(
+            $invoice->getDate()->format('Y-m-d H:i:s'),
+            $savedInvoice->getDate()->format('Y-m-d H:i:s'));
+        $this->assertInstanceOf(DateTime::class, $savedInvoice->getDate());
+        $this->assertSame($invoice->getDiscount(), $savedInvoice->getDiscount());
+        $this->assertInstanceOf(InterfaceLines::class, $savedInvoice->getInvoiceLines());
+        foreach ($lineIds as $lineId) {
+            $this->assertSame(
+                $invoice->getInvoiceLines()->getById($lineId)->getId(),
+                $savedInvoice->getInvoiceLines()->getById($lineId)->getId());
+            $this->assertSame(
+                $invoice->getInvoiceLines()->getById($lineId)->getAmount(),
+                $savedInvoice->getInvoiceLines()->getById($lineId)->getAmount());
+            $this->assertSame(
+                $invoice->getInvoiceLines()->getById($lineId)->getQuantity(),
+                $savedInvoice->getInvoiceLines()->getById($lineId)->getQuantity());
+            $this->assertSame(
+                $invoice->getInvoiceLines()->getById($lineId)->getName(),
+                $savedInvoice->getInvoiceLines()->getById($lineId)->getName());
+        }
+    }
+
+    public function findByDateStatusProvider()
+    {
+        return
+        [
+            [
+                [
+                    (new Invoice(new InvoiceLines()))
+                    ->setDiscount(5)
+                    ->setNumber('20201011')
+                    ->setStatus('Оплачен')
+                    ->setDate(new DateTime('202001010000')),
+                    (new Invoice(new InvoiceLines()))
+                    ->setDiscount(15)
+                    ->setNumber('202001021')
+                    ->setStatus('Оплачен')
+                    ->setDate(new DateTime('202001020000'))
+                ],
+                new DateTime('20200101'),
+                'Оплачен'
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider findByDateStatusProvider
+     */
+    public function testInvoiceRepositoryFindByDateStatus($invoices, DateTime $date, $status)
+    {
+        $repository = new InvoiceRepository();
+        foreach ($invoices as $invoice) {
+            $repository->save($invoice);
+        }
+        foreach ($repository->findByDateStatus($date, $status) as $invoice) {
+            $this->assertSame($status, $invoice->getStatus());
+            $this->assertGreaterThan($date, $invoice->getDate());
+        }
+    }
 }

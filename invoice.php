@@ -53,7 +53,7 @@ class Invoice
 
     public function setDiscount($discount)
     {
-        $this->discount = $discount;
+        $this->discount = (int)$discount;
         return $this;
     }
 
